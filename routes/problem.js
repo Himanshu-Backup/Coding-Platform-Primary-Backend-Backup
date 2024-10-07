@@ -15,7 +15,7 @@ router.get('/:id', catchAsync(getProblemWithId));
 
 
 //createTestCases
-router.post('/createTestCases', catchAsync(createTestCase))
+router.post('/createTestCase', catchAsync(createTestCase))
 
 //Create Code
 router.post('/createCode', catchAsync(createCode))

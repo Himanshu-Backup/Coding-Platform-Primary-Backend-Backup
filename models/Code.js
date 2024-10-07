@@ -12,11 +12,9 @@ const codeSchema = new mongoose.Schema({
     },
     preCode: {
         type: String, // The code provided before the user function.
-        required: true
     },
     postCode: {
         type: String, // The code provided after the user function.
-        required: true
     },
     solutionCode: {
         type: String, // The correct solution for the problem.

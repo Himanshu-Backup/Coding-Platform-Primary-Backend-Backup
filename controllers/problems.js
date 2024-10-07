@@ -19,37 +19,67 @@ module.exports.createProblem = async (req, res) => {
 
 module.exports.createTestCase = async (req, res) => {
     try {
-        const { input, output, problemId } = req.body;
+        const testCases = req.body;  // Expecting the entire array of test cases
 
-        const newTestCase = new TestCase({ input, output, problemId });
-        const savedTestCase = await newTestCase.save();
+        if (!testCases || !Array.isArray(testCases) || testCases.length === 0) {
+            return res.status(400).json({ success: false, message: "No test cases provided" });
+        }
 
-        // Find and update the problem with the new test case
-        await Problem.findByIdAndUpdate(problemId, { $push: { testCases: savedTestCase._id } });
+        const createdTestCases = [];
 
-        res.status(201).json({ success: true, testCase: savedTestCase });
+        // Loop over each test case in the array and save it
+        for (const testCase of testCases) {
+            const { input, output, problemId } = testCase;
+
+            // Create and save a new test case
+            const newTestCase = new TestCase({ input, output, problemId });
+            const savedTestCase = await newTestCase.save();
+            createdTestCases.push(savedTestCase._id);
+        }
+
+        // Update the problem with the new test case IDs
+        const uniqueProblemId = testCases[0].problemId; // Assuming all test cases belong to the same problem
+        await Problem.findByIdAndUpdate(uniqueProblemId, { $push: { testCases: { $each: createdTestCases } } });
+
+        res.status(201).json({ success: true, testCases: createdTestCases });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: "Error creating test case" });
+        res.status(500).json({ success: false, message: "Error creating test cases" });
     }
 };
 
+//Create code
 module.exports.createCode = async (req, res) => {
     try {
-        const { language, preCode, postCode, solutionCode, problemId } = req.body;
+        const codes = req.body; // Expecting the entire array of code entries
 
-        const newCode = new Code({ language, preCode, postCode, solutionCode, problemId });
-        const savedCode = await newCode.save();
+        if (!codes || !Array.isArray(codes) || codes.length === 0) {
+            return res.status(400).json({ success: false, message: "No code entries provided" });
+        }
 
-        // Find and update the problem with the new code entry
-        await Problem.findByIdAndUpdate(problemId, { $push: { code: savedCode._id } });
+        const createdCodeEntries = [];
 
-        res.status(201).json({ success: true, code: savedCode });
+        // Loop over each code entry in the array and save it
+        for (const code of codes) {
+            const { language, preCode, postCode, solutionCode, problemId } = code;
+
+            // Create and save a new code entry
+            const newCode = new Code({ language, preCode, postCode, solutionCode, problemId });
+            const savedCode = await newCode.save();
+            createdCodeEntries.push(savedCode._id);
+        }
+
+        // Update the problem with the new code IDs
+        const uniqueProblemId = codes[0].problemId; // Assuming all code entries belong to the same problem
+        await Problem.findByIdAndUpdate(uniqueProblemId, { $push: { code: { $each: createdCodeEntries } } });
+
+        res.status(201).json({ success: true, codes: createdCodeEntries });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: "Error creating code" });
+        res.status(500).json({ success: false, message: "Error creating code entries" });
     }
 };
+
 
 
 //Get problem with a ID
