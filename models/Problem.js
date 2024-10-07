@@ -1,4 +1,3 @@
-// models/Problem.js
 const mongoose = require('mongoose');
 
 const problemSchema = new mongoose.Schema({
@@ -11,6 +10,18 @@ const problemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    testCases: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'TestCase'
+        }
+    ],
+    code: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Code'
+        }
+    ],
     sampleTestCases: {
         type: [
             {
@@ -18,20 +29,13 @@ const problemSchema = new mongoose.Schema({
                 output: { type: String, required: true }
             }
         ],
-        required: true
-    },
-    preCode: {
-        type: String, // The code provided before the user function.
-        required: true
-    },
-    postCode: {
-        type: String, // The code provided after the user function.
-        required: true
-    },
-    solutionCode: {
-        type: String, // The correct solution for the problem.
+        validate: [arrayLimit, '{PATH} exceeds the limit of 2'], // Limits the array to 2 sample test cases
         required: true
     }
 });
+
+function arrayLimit(val) {
+    return val.length === 2;
+}
 
 module.exports = mongoose.model('Problem', problemSchema);
