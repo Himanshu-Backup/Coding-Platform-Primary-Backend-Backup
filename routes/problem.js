@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { getProblems, createProblem, createTestCase, createProblemLanguageMapping, getProblemDetails, createProblemLanguageCodeMapping } = require('../controllers/problemController');
+const { getProblems, createProblem, updateProblem, createTestCase, createProblemLanguageMapping, getProblemDetails, createProblemLanguageCodeMapping } = require('../controllers/problemController');
 
 // Route to get all problems (just titles and ids)
 router.get('/', getProblems);
 
 // Route to create a new problem
 router.post('/createProblem', createProblem);
+
+// Route to update a problem by problem ID
+router.put('/updateProblem/:id', updateProblem);
 
 // Route to create a test case for a problem
 router.post('/createTestCase', createTestCase);

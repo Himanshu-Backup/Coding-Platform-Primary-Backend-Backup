@@ -29,6 +29,33 @@ const createProblem = async (req, res) => {
     }
 };
 
+//Updating a problem
+const updateProblem = async (req, res) => {
+    const { id } = req.params;  // problem ID from the route
+    const { title, description, sampleTestCases } = req.body;  // Fields to update
+
+    try {
+        // Find the problem by its ID
+        let problem = await Problem.findById(id);
+        if (!problem) {
+            return res.status(404).json({ message: 'Problem not found' });
+        }
+
+        // Update problem fields if they are provided in the request body
+        if (title) problem.title = title;
+        if (description) problem.description = description;
+        if (sampleTestCases && sampleTestCases.length === 2) {
+            problem.sampleTestCases = sampleTestCases;  // Expecting two sample test cases
+        }
+
+        // Save the updated problem to the database
+        await problem.save();
+        res.status(200).json({ message: 'Problem updated successfully', problem });
+    } catch (err) {
+        res.status(500).json({ message: 'Error updating problem', error: err });
+    }
+};
+
 // Create a test case for a specific problem
 const createTestCase = async (req, res) => {
     const { problemID, input, output } = req.body;
@@ -94,6 +121,7 @@ const createProblemLanguageCodeMapping = async (req, res) => {
 module.exports = {
     getProblems,
     createProblem,
+    updateProblem,
     createTestCase,
     createProblemLanguageMapping,
     getProblemDetails,
