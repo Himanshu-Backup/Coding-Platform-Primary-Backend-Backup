@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
-
-const testCaseSchema = new mongoose.Schema({
-    problemId: {
+const problemTestCaseMappingSchema = new mongoose.Schema({
+    problemID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Problem',
         required: true
@@ -16,4 +15,5 @@ const testCaseSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('TestCase', testCaseSchema);
+const ProblemTestCaseMapping = mongoose.model('ProblemTestCaseMapping', problemTestCaseMappingSchema);
+module.exports = ProblemTestCaseMapping;

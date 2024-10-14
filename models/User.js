@@ -16,8 +16,14 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    problemsCompleted: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Problem'
+    }]
 });
+
+
 
 // Password hashing middleware before saving the user
 userSchema.pre('save', async function (next) {
