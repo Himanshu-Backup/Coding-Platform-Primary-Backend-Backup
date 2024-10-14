@@ -41,11 +41,32 @@ const updateProblem = async (req, res) => {
             return res.status(404).json({ message: 'Problem not found' });
         }
 
-        // Update problem fields if they are provided in the request body
-        if (title) problem.title = title;
-        if (description) problem.description = description;
-        if (sampleTestCases && sampleTestCases.length === 2) {
-            problem.sampleTestCases = sampleTestCases;  // Expecting two sample test cases
+        // Update the problem title if provided
+        if (title) {
+            problem.title = title;
+        }
+
+        // Update the problem description if provided
+        if (description) {
+            problem.description = description;
+        }
+
+        // If sampleTestCases is provided, update them accordingly
+        if (sampleTestCases) {
+            // Check if there are exactly two sample test cases
+            if (sampleTestCases.length === 2) {
+                problem.sampleTestCases = sampleTestCases;  // Overwrite both test cases
+            } else if (sampleTestCases.length === 1) {
+                // Check if only one test case is provided (e.g., user wants to update one of the two)
+                const [updatedTestCase] = sampleTestCases;
+
+                // Update individual test cases if their index is provided (0 or 1)
+                if (updatedTestCase.index === 0) {
+                    problem.sampleTestCases[0] = updatedTestCase;  // Update the first test case
+                } else if (updatedTestCase.index === 1) {
+                    problem.sampleTestCases[1] = updatedTestCase;  // Update the second test case
+                }
+            }
         }
 
         // Save the updated problem to the database
@@ -55,6 +76,7 @@ const updateProblem = async (req, res) => {
         res.status(500).json({ message: 'Error updating problem', error: err });
     }
 };
+
 
 // Create a test case for a specific problem
 const createTestCase = async (req, res) => {

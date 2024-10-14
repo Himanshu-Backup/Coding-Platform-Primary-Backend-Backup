@@ -28,6 +28,11 @@ const problemSchema = new mongoose.Schema({
     }]
 });
 
+// Adding field-level validation for `sampleTestCases`
+problemSchema.path('sampleTestCases').validate(function (value) {
+    // Ensure that there are exactly 2 elements in the `sampleTestCases` array
+    return value.length === 2;
+}, 'There must be exactly 2 sample test cases.');
 
 const Problem = mongoose.model('Problem', problemSchema);
 module.exports = Problem;
