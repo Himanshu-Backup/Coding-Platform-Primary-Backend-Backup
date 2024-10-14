@@ -1,27 +1,23 @@
-// routes/problems.js
 const express = require('express');
 const router = express.Router();
-const { createCode, createTestCase, createProblem, getProblemWithId, getAllProblems } = require("../controllers/problems")
-const catchAsync = require("../utils/catchAsync")
+const { getProblems, createProblem, createTestCase, createProblemLanguageMapping, getProblemDetails, createProblemLanguageCodeMapping } = require('../controllers/problemController');
 
+// Route to get all problems (just titles and ids)
+router.get('/', getProblems);
 
+// Route to create a new problem
+router.post('/createProblem', createProblem);
 
-// Create a new problem (admin only)
-router.post('/createProblem', catchAsync(createProblem));
+// Route to create a test case for a problem
+router.post('/createTestCase', createTestCase);
 
-// routes/problems.js (continuation)
-// Get a problem by ID
-router.get('/:id', catchAsync(getProblemWithId));
+// Route to create language mapping for a problem
+router.post('/createProblemLanguageMapping', createProblemLanguageMapping);
 
+// Route to get problem details for attempting
+router.get('/attempt/:problemId', getProblemDetails);
 
-//createTestCases
-router.post('/createTestCase', catchAsync(createTestCase))
-
-//Create Code
-router.post('/createCode', catchAsync(createCode))
-
-//Get all Problems
-
-router.get("/", catchAsync(getAllProblems))
+// Route to create language code mapping
+router.post('/createProblemLanguageCodeMapping', createProblemLanguageCodeMapping);
 
 module.exports = router;
