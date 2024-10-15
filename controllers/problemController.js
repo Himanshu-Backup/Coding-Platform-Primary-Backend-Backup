@@ -88,7 +88,18 @@ const createTestCase = async (req, res) => {
             output
         });
         await newTestCase.save();
-        res.status(201).json(newTestCase);
+
+        let problem = await Problem.findByIdAndUpdate(
+            problemID,
+            { $push: { testCases: newTestCase._id } },  // Push the new test case ID to the testCases array
+            { new: true }  // Return the updated problem
+        );
+
+        if (!problem) {
+            return res.status(404).json({ message: 'Problem not found' });
+        }
+
+        res.status(201).json({ message: 'Test case created and added to problem', testCase: newTestCase });
     } catch (err) {
         res.status(500).json({ message: 'Error creating test case', error: err });
     }
@@ -103,6 +114,12 @@ const createProblemLanguageMapping = async (req, res) => {
             language
         });
         await newMapping.save();
+
+        let problem = await Problem.findByIdAndUpdate(
+            problemID,
+            { $push: { problemLanguageMapping: newMapping._id } },
+            { new: true }
+        )
         res.status(201).json(newMapping);
     } catch (err) {
         res.status(500).json({ message: 'Error creating language mapping', error: err });
@@ -134,6 +151,7 @@ const createProblemLanguageCodeMapping = async (req, res) => {
             boilerplateCode
         });
         await newMapping.save();
+
         res.status(201).json(newMapping);
     } catch (err) {
         res.status(500).json({ message: 'Error creating code mapping', error: err });
