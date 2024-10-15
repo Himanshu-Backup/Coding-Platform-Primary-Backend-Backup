@@ -152,6 +152,12 @@ const createProblemLanguageCodeMapping = async (req, res) => {
         });
         await newMapping.save();
 
+        let problemLanguageMapping = await ProblemLanguageMapping.findByIdAndUpdate(
+            problemLanguageMappingID,
+            { $push: { problemLanguageCodeMapping: newMapping._id } },
+            { new: true }
+        )
+
         res.status(201).json(newMapping);
     } catch (err) {
         res.status(500).json({ message: 'Error creating code mapping', error: err });

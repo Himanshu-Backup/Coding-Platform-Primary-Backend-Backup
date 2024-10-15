@@ -4,8 +4,125 @@ const ProblemLanguageMapping = require('../models/ProblemLanguageMapping');
 const ProblemLanguageCodeMapping = require('../models/ProblemLanguageCodeMapping');
 const axios = require('axios');
 
-const JUDGE0_API_URL = process.env.JUDGE0_API_URL; // Make sure to configure these in your environment
+// Load environment variables from .env
+require('dotenv').config();
+
+const JUDGE0_API_URL = process.env.JUDGE0_API_URL;
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
+
+const LANGUAGE_IDS = {
+    "C++": 54,
+    "Java": 91,
+    "Python": 71,
+    "Javascript": 93
+};
+
+const createSubmissionAndFetchResult = async (source_code, language_id, _stdin, expected_output) => {
+    try {
+        // Encode the source code in base64
+
+        // const encodedSourceCode = Buffer.from(source_code).toString('base64');
+
+        // console.log({
+        //     language_id: language_id,
+        //     source_code: btoa(source_code),
+        //     stdin: stdin,
+        //     expected_output: expected_output
+        // });
+
+        // Step 1: Create the submission (POST request)
+        // const options = {
+        //     method: 'POST',
+        //     url: `${JUDGE0_API_URL}/submissions`,
+        //     params: {
+        //         base64_encoded: 'true',  // Set base64_encoded to true
+        //         wait: 'false',
+        //         fields: '*'  // Fetch all fields
+        //     },
+        //     headers: {
+        //         'x-rapidapi-key': JUDGE0_API_KEY,
+        //         'Content-Type': 'application/json'
+        //     },
+        //     data: {
+        //         language_id: language_id,
+        //         source_code: encodedSourceCode,  // Use the encoded source code
+        //         stdin: stdin,
+        //         expected_output: expected_output
+        //     }
+        // };
+
+
+
+        const options = {
+            method: 'POST',
+            url: 'https://judge0-ce.p.rapidapi.com/submissions',
+            params: {
+                base64_encoded: 'true',
+                wait: 'false',
+                fields: '*'
+            },
+            headers: {
+                'x-rapidapi-key': '908dd6c3a9mshcfeebef6564f291p181ca8jsnf1a23bba0dd1',
+                'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
+                'Content-Type': 'application/json'
+            },
+            data: {
+                language_id: language_id,
+                source_code: btoa(source_code),
+                stdin: btoa(_stdin),
+                expected_output: btoa(expected_output)
+            }
+        };
+
+
+        const submissionResponse = await axios.request(options);;
+        // console.log(submissionResponse.data);
+
+        if (!submissionResponse.data.token) {
+            throw new Error('Submission failed');
+        }
+
+        const token = submissionResponse.data.token;
+        console.log(token);
+
+        console.log(submissionResponse.data)
+        // Step 2: Poll the result using the token (GET request)
+        let submissionResult;
+        let status;
+
+        do {
+            const axios = require('axios');
+
+            const getOptions = {
+                method: 'GET',
+                url: `https://judge0-ce.p.rapidapi.com/submissions/${token}`,
+                params: {
+                    base64_encoded: 'true',
+                    fields: '*'
+                },
+                headers: {
+                    'x-rapidapi-key': '908dd6c3a9mshcfeebef6564f291p181ca8jsnf1a23bba0dd1',
+                    'x-rapidapi-host': 'judge0-ce.p.rapidapi.com'
+                }
+            };
+
+            submissionResult = await axios.request(getOptions);
+            console.log(submissionResult.data);
+            status = submissionResult.data.status.id;
+
+            // Sleep for a while to avoid hitting the API too often
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+        } while (status <= 2); // Status 1 = "In Queue", Status 2 = "Processing"
+
+        // Step 3: Return the final result
+        return submissionResult.data;
+
+    } catch (err) {
+        console.error('Error creating or fetching submission:', err);
+        throw err;
+    }
+};
 
 // Handles code submission by a user
 const handleSubmission = async (req, res) => {
@@ -13,7 +130,7 @@ const handleSubmission = async (req, res) => {
     const problemId = req.params.id;
 
     try {
-        // Fetch the problem details
+        // Fetch problem and mappings
         const problem = await Problem.findById(problemId)
             .populate({
                 path: 'problemLanguageMapping',
@@ -22,131 +139,63 @@ const handleSubmission = async (req, res) => {
             .populate('testCases');
         if (!problem) return res.status(404).json({ msg: 'Problem not found' });
 
-        // Find the relevant language mapping
         const languageMapping = await ProblemLanguageMapping.findOne({ problemID: problemId, language });
         if (!languageMapping) {
             return res.status(404).json({ msg: `No language mapping found for ${language}` });
         }
 
-        // Get code mappings for this language
         const codeMapping = await ProblemLanguageCodeMapping.findOne({ problemLanguageMappingID: languageMapping._id });
         if (!codeMapping) {
             return res.status(404).json({ msg: `No code mappings found for the selected language: ${language}` });
         }
 
-        // Prepare the complete code by concatenating preCode, userCode, and postCode
         const completeCode = `${codeMapping.preCode}\n${userCode}\n${codeMapping.postCode}`;
-
         const results = [];
-
-        // Iterate over sample test cases
+        console.log(completeCode);
+        // Iterate through sample test cases
         for (const testCase of problem.sampleTestCases) {
-            // Step 1: Create a submission
-            const submissionResponse = await axios.post(`${JUDGE0_API_URL}/submissions?base64_encoded=false`, {
-                source_code: completeCode,
-                language_id: codeMapping.languageId,
-                stdin: testCase.input,
-                expected_output: testCase.output
-            }, {
-                headers: {
-                    'x-rapidapi-key': JUDGE0_API_KEY,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const result = await createSubmissionAndFetchResult(
+                completeCode,
+                LANGUAGE_IDS[language],
+                testCase.input,
+                testCase.output
+            );
 
-            if (submissionResponse.status !== 201) {
-                return res.status(500).json({ msg: 'Error creating submission in Judge0' });
-            }
-
-            const token = submissionResponse.data.token;
-
-            // Step 2: Poll for result using the token
-            let submissionResult = null;
-            while (true) {
-                const resultResponse = await axios.get(`${JUDGE0_API_URL}/submissions/${token}?base64_encoded=false&fields=stdout,status_id,stderr`, {
-                    headers: {
-                        'x-rapidapi-key': JUDGE0_API_KEY
-                    }
-                });
-
-                submissionResult = resultResponse.data;
-
-                // Check if the result is ready (status_id == 3 means finished)
-                if (submissionResult.status_id === 3) break;
-
-                // Delay for a bit before checking again
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-            // Check if the output matches the expected output
             results.push({
                 input: testCase.input,
                 expected_output: testCase.output,
-                actual_output: submissionResult.stdout,
-                success: submissionResult.stdout === testCase.output
+                actual_output: result.stdout,
+                success: atob(result.stdout) === testCase.output,
+                status: result.status.description
             });
         }
 
-        // Check if all sample test cases passed
         const allSamplePassed = results.every(result => result.success);
 
         if (allSamplePassed) {
-            // Evaluate hidden test cases if all sample test cases passed
             const otherResults = [];
             for (const testCaseId of problem.testCases) {
                 const testCase = await ProblemTestCaseMapping.findById(testCaseId);
                 if (!testCase) continue;
 
-                // Step 1: Create a submission for hidden test cases
-                const submissionResponse = await axios.post(`${JUDGE0_API_URL}/submissions?base64_encoded=false`, {
-                    source_code: completeCode,
-                    language_id: codeMapping.languageId,
-                    stdin: testCase.input,
-                    expected_output: testCase.output
-                }, {
-                    headers: {
-                        'x-rapidapi-key': JUDGE0_API_KEY,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                const result = await createSubmissionAndFetchResult(
+                    completeCode,
+                    LANGUAGE_IDS[language],
+                    testCase.input,
+                    testCase.output
+                );
 
-                if (submissionResponse.status !== 201) {
-                    return res.status(500).json({ msg: 'Error creating submission in Judge0 for hidden test case' });
-                }
-
-                const token = submissionResponse.data.token;
-
-                // Step 2: Poll for the result using the token
-                let submissionResult = null;
-                while (true) {
-                    const resultResponse = await axios.get(`${JUDGE0_API_URL}/submissions/${token}?base64_encoded=false&fields=stdout,status_id,stderr`, {
-                        headers: {
-                            'x-rapidapi-key': JUDGE0_API_KEY
-                        }
-                    });
-
-                    submissionResult = resultResponse.data;
-
-                    // Check if the result is ready
-                    if (submissionResult.status_id === 3) break;
-
-                    // Delay before checking again
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-
-                // Check if the output matches the expected output
                 otherResults.push({
                     input: testCase.input,
                     expected_output: testCase.output,
-                    actual_output: submissionResult.stdout,
-                    success: submissionResult.stdout === testCase.output
+                    actual_output: result.stdout,
+                    success: atob(result.stdout) === testCase.output,
+                    status: result.status.description
                 });
             }
 
-            // Return both sample and hidden test case results
             res.json({ results, otherResults });
         } else {
-            // Return sample test case results if not all passed
             res.json({ results });
         }
     } catch (err) {
@@ -155,93 +204,55 @@ const handleSubmission = async (req, res) => {
     }
 };
 
-
+// Handles "Run" operation without validating all test cases
 const handleRun = async (req, res) => {
     const { userCode, language } = req.body;
     const problemId = req.params.id;
 
     try {
-        // Fetch the problem and populate mappings
         const problem = await Problem.findById(problemId)
             .populate({
-                path: 'ProblemLanguageMapping',
-                populate: { path: 'ProblemLanguageCodeMapping' }
+                path: 'problemLanguageMapping',
+                populate: { path: 'problemLanguageCodeMapping' }
             });
         if (!problem) return res.status(404).json({ msg: 'Problem not found' });
 
-        // Find the relevant language mapping
         const languageMapping = await ProblemLanguageMapping.findOne({ problemID: problemId, language });
         if (!languageMapping) {
             return res.status(404).json({ msg: `No language mapping found for ${language}` });
         }
 
-        // Fetch the corresponding code mapping
         const codeMapping = await ProblemLanguageCodeMapping.findOne({ problemLanguageMappingID: languageMapping._id });
         if (!codeMapping) {
             return res.status(404).json({ msg: `No code mappings found for the selected language: ${language}` });
         }
 
-        // Concatenate the preCode, userCode, and postCode
         const completeCode = `${codeMapping.preCode}\n${userCode}\n${codeMapping.postCode}`;
-
         const results = [];
 
-        // Loop through the sample test cases and evaluate them
         for (const testCase of problem.sampleTestCases) {
-            // Step 1: Create a submission
-            const submissionResponse = await axios.post(`${JUDGE0_API_URL}/submissions?base64_encoded=false`, {
-                source_code: completeCode,
-                language_id: codeMapping.languageId,
-                stdin: testCase.input,
-                expected_output: testCase.output
-            }, {
-                headers: {
-                    'x-rapidapi-key': JUDGE0_API_KEY,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const result = await createSubmissionAndFetchResult(
+                completeCode,
+                LANGUAGE_IDS[language],
+                testCase.input,
+                testCase.output
+            );
 
-            if (submissionResponse.status !== 201) {
-                return res.status(500).json({ msg: 'Error creating submission in Judge0' });
-            }
-
-            const token = submissionResponse.data.token;
-
-            // Step 2: Poll for result using the token
-            let submissionResult = null;
-            while (true) {
-                const resultResponse = await axios.get(`${JUDGE0_API_URL}/submissions/${token}?base64_encoded=false&fields=stdout,status_id,stderr`, {
-                    headers: {
-                        'x-rapidapi-key': JUDGE0_API_KEY
-                    }
-                });
-
-                submissionResult = resultResponse.data;
-
-                // Check if the result is ready (status_id == 3 means finished)
-                if (submissionResult.status_id === 3) break;
-
-                // Delay for a bit before checking again
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-            // Check if the output matches the expected output
             results.push({
                 input: testCase.input,
                 expected_output: testCase.output,
-                actual_output: submissionResult.stdout,
-                success: submissionResult.stdout === testCase.output
+                actual_output: result.stdout,
+                success: result.stdout === testCase.output,
+                status: result.status.description
             });
         }
 
-        res.json({ results });  // Return results of sample test cases
+        res.json({ results });
     } catch (err) {
-        console.error(err);  // Log the error for debugging
+        console.error(err);
         res.status(500).json({ error: 'Server error' });
     }
 };
-
-
 
 module.exports = {
     handleSubmission,
