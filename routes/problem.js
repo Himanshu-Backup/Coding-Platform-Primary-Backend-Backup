@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getProblems, createProblem, updateProblem, createTestCase, createProblemLanguageMapping, getProblemDetails, createProblemLanguageCodeMapping } = require('../controllers/problemController');
+const { getProblems, createProblem, updateProblem, createTestCase, createProblemLanguageMapping, getProblemDetails, createProblemLanguageCodeMapping, getProblemWithId } = require('../controllers/problemController');
 
 // Route to get all problems (just titles and ids)
 router.get('/', getProblems);
+
+// Route to get a specific problem's title and description
+router.get('/:id', getProblemWithId);
 
 // Route to create a new problem
 router.post('/createProblem', createProblem);

@@ -164,6 +164,31 @@ const createProblemLanguageCodeMapping = async (req, res) => {
     }
 };
 
+const getProblemWithId = async (req, res) => {
+    const problemId = req.params.id;
+
+    try {
+        // const id = mongoose.Types.ObjectId(problemId);
+
+        // Use findById to find a single problem document by its ID
+        const problem = await Problem.findById(problemId);
+
+
+        // Check if the problem exists
+        // if (!problem) {
+        //     return res.status(404).send("No such problem exists");
+        // }
+        console.log(problem)
+        // Return the problem as JSON
+        return res.status(200).json(problem);
+
+    } catch (err) {
+        console.error(err); // Log the error for debugging
+        return res.status(500).json({ message: "Some error occurred with this route" });
+    }
+};
+
+
 module.exports = {
     getProblems,
     createProblem,
@@ -171,5 +196,6 @@ module.exports = {
     createTestCase,
     createProblemLanguageMapping,
     getProblemDetails,
-    createProblemLanguageCodeMapping
+    createProblemLanguageCodeMapping,
+    getProblemWithId
 };

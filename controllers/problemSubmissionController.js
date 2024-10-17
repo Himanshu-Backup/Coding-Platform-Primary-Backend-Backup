@@ -194,6 +194,8 @@ const handleSubmission = async (req, res) => {
                 });
             }
 
+
+
             res.json({ results, otherResults });
         } else {
             res.json({ results });
