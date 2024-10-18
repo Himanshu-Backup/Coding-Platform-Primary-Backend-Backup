@@ -107,13 +107,15 @@ const createSubmissionAndFetchResult = async (source_code, language_id, _stdin, 
             };
 
             submissionResult = await axios.request(getOptions);
-            console.log(submissionResult.data);
+            // console.log(submissionResult.data);
             status = submissionResult.data.status.id;
 
             // Sleep for a while to avoid hitting the API too often
             await new Promise(resolve => setTimeout(resolve, 1000));
 
         } while (status <= 2); // Status 1 = "In Queue", Status 2 = "Processing"
+
+        console.log(submissionResult.data);
 
         // Step 3: Return the final result
         return submissionResult.data;
@@ -209,6 +211,7 @@ const handleSubmission = async (req, res) => {
 // Handles "Run" operation without validating all test cases
 const handleRun = async (req, res) => {
     const { userCode, language } = req.body;
+    console.log(userCode);
     const problemId = req.params.id;
 
     try {
