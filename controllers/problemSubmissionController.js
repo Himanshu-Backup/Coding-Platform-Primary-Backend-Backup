@@ -188,7 +188,7 @@ const handleSubmission = async (req, res) => {
                 otherResults.push({
                     input: testCase.input,
                     expected_output: testCase.output,
-                    actual_output: result.stdout,
+                    actual_output: atob(result.stdout),
                     success: atob(result.stdout) === testCase.output,
                     status: result.status.description
                 });
@@ -243,8 +243,8 @@ const handleRun = async (req, res) => {
             results.push({
                 input: testCase.input,
                 expected_output: testCase.output,
-                actual_output: result.stdout,
-                success: result.stdout === testCase.output,
+                actual_output: atob(result.stdout),
+                success: atob(result.stdout) === testCase.output,
                 status: result.status.description
             });
         }

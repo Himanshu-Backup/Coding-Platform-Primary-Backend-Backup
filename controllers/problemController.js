@@ -131,13 +131,22 @@ const getProblemDetails = async (req, res) => {
     const { problemId } = req.params;
     try {
         const problem = await Problem.findById(problemId)
-            .populate('testCases')
-            .populate('problemLanguageMapping');
+            .populate('testCases')  // Populate test cases
+            .populate({
+                path: 'problemLanguageMapping',  // Populate the problemLanguageMapping
+                populate: {
+                    path: 'problemLanguageCodeMapping',  // Nested population for problemLanguageCodeMapping
+                    model: 'ProblemLanguageCodeMapping'  // Explicitly reference the ProblemLanguageCodeMapping model
+                }
+            });
+
         res.status(200).json(problem);
     } catch (err) {
+        console.error(err);  // Log the error for debugging
         res.status(500).json({ message: 'Error fetching problem details', error: err });
     }
 };
+
 
 // Create code mapping for a problem language
 const createProblemLanguageCodeMapping = async (req, res) => {
