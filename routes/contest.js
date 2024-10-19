@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getContests, createContest, updateContest, registerForContest, attemptContest } = require('../controllers/contestController');
-const { protect } = require('../middlewares/authMiddleware');
+const { fetchUser } = require('../middlewares/fetchUser');
 
 // Route to get all contests
 router.get('/', getContests);
@@ -13,9 +13,9 @@ router.post('/createContest', createContest);
 router.put('/updateContest/:id', updateContest);
 
 // Protected route: Register a user for a contest
-router.post('/register', protect, registerForContest);
+router.post('/register', fetchUser, registerForContest);
 
 // Protected route: Attempt a contest (must be registered)
-router.get('/attempt/:contestId', protect, attemptContest);
+router.get('/attempt/:contestId', fetchUser, attemptContest);
 
 module.exports = router;

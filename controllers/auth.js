@@ -47,3 +47,36 @@ module.exports.login = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+//Get Profile
+module.exports.getProfile = async (req, res) => {
+    try {
+        // Find the user by the ID present in the request object (set by fetchUser middleware)
+        const user = await User.findById(req.user.id)
+            .populate('problemsCompleted', 'title') // Populate 'problemsCompleted' with the 'title' field from the Problem model
+            .select('username email problemsCompleted'); // Select only the necessary fields from the user
+
+        // If the user does not exist
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Map over the populated problemsCompleted array and extract title and problemId
+        const completedProblems = user.problemsCompleted.map(problem => ({
+            problemId: problem._id, // Problem ID
+            title: problem.title // Problem title
+        }));
+
+        // Send the response with username, email, and problems solved
+        return res.json({
+            username: user.username,
+            email: user.email,
+            problemsCompleted: completedProblems
+        });
+
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
