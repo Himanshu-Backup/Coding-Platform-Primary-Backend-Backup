@@ -3,6 +3,7 @@ const ProblemTestCaseMapping = require('../models/ProblemTestCaseMapping');
 const ProblemLanguageMapping = require('../models/ProblemLanguageMapping');
 const ProblemLanguageCodeMapping = require('../models/ProblemLanguageCodeMapping');
 const axios = require('axios');
+const { propfind } = require('../routes/auth');
 
 // Load environment variables from .env
 require('dotenv').config();
@@ -19,40 +20,6 @@ const LANGUAGE_IDS = {
 
 const createSubmissionAndFetchResult = async (source_code, language_id, _stdin, expected_output) => {
     try {
-        // Encode the source code in base64
-
-        // const encodedSourceCode = Buffer.from(source_code).toString('base64');
-
-        // console.log({
-        //     language_id: language_id,
-        //     source_code: btoa(source_code),
-        //     stdin: stdin,
-        //     expected_output: expected_output
-        // });
-
-        // Step 1: Create the submission (POST request)
-        // const options = {
-        //     method: 'POST',
-        //     url: `${JUDGE0_API_URL}/submissions`,
-        //     params: {
-        //         base64_encoded: 'true',  // Set base64_encoded to true
-        //         wait: 'false',
-        //         fields: '*'  // Fetch all fields
-        //     },
-        //     headers: {
-        //         'x-rapidapi-key': JUDGE0_API_KEY,
-        //         'Content-Type': 'application/json'
-        //     },
-        //     data: {
-        //         language_id: language_id,
-        //         source_code: encodedSourceCode,  // Use the encoded source code
-        //         stdin: stdin,
-        //         expected_output: expected_output
-        //     }
-        // };
-
-
-
         const options = {
             method: 'POST',
             url: 'https://judge0-ce.p.rapidapi.com/submissions',
@@ -85,7 +52,7 @@ const createSubmissionAndFetchResult = async (source_code, language_id, _stdin, 
         const token = submissionResponse.data.token;
         console.log(token);
 
-        console.log(submissionResponse.data)
+        // console.log(submissionResponse.data)
         // Step 2: Poll the result using the token (GET request)
         let submissionResult;
         let status;
@@ -221,7 +188,9 @@ const handleRun = async (req, res) => {
                 populate: { path: 'problemLanguageCodeMapping' }
             });
         if (!problem) return res.status(404).json({ msg: 'Problem not found' });
-        console.log(language)
+        console.log(problem)
+
+        // res.status(201).json({ "problem": problem })
         const languageMapping = await ProblemLanguageMapping.findOne({ problemID: problemId, language });
         if (!languageMapping) {
             return res.status(404).json({ msg: `No language mapping found for ${language}` });

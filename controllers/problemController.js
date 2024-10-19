@@ -173,6 +173,40 @@ const createProblemLanguageCodeMapping = async (req, res) => {
     }
 };
 
+// Update ProblemLanguageCodeMapping
+const updateProblemLanguageCodeMapping = async (req, res) => {
+    const problemLanguageCodeMappingID = req.params.id;
+    // Extract fields from request body
+    const { problemLanguageMappingID, preCode, postCode, solutionCode, boilerplateCode } = req.body;
+    console.log(problemLanguageMappingID)
+    const existingMapping = await ProblemLanguageCodeMapping.findById(problemLanguageCodeMappingID);
+    console.log("Existing Mapping:", existingMapping);
+
+    // Create an object to hold fields to update
+    const updateFields = {};
+    if (preCode !== "") updateFields.preCode = preCode;
+    if (postCode !== "") updateFields.postCode = postCode;
+    if (solutionCode !== "") updateFields.solutionCode = solutionCode;
+    if (boilerplateCode !== "") updateFields.boilerplateCode = boilerplateCode;
+
+    try {
+        const updatedMapping = await ProblemLanguageCodeMapping.findByIdAndUpdate(
+            problemLanguageCodeMappingID,
+            { $set: updateFields },
+            { new: true } // Returns the updated document and runs validators
+        );
+
+        if (!updatedMapping) {
+            return res.status(404).json({ message: 'Code mapping not found' });
+        }
+
+        res.status(200).json(updatedMapping);
+    } catch (err) {
+        res.status(500).json({ message: 'Error updating code mapping', error: err });
+    }
+};
+
+
 const getProblemWithId = async (req, res) => {
     const problemId = req.params.id;
 
@@ -206,5 +240,6 @@ module.exports = {
     createProblemLanguageMapping,
     getProblemDetails,
     createProblemLanguageCodeMapping,
-    getProblemWithId
+    getProblemWithId,
+    updateProblemLanguageCodeMapping
 };
