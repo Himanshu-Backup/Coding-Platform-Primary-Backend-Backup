@@ -192,16 +192,28 @@ const handleRun = async (req, res) => {
 
         // res.status(201).json({ "problem": problem })
         const languageMapping = await ProblemLanguageMapping.findOne({ problemID: problemId, language });
-        if (!languageMapping) {
-            return res.status(404).json({ msg: `No language mapping found for ${language}` });
-        }
+        // if (!languageMapping) {
+        //     return res.status(404).json({ msg: `No language mapping found for ${language}` });
+        // }
 
-        const codeMapping = await ProblemLanguageCodeMapping.findOne({ problemLanguageMappingID: languageMapping._id });
-        if (!codeMapping) {
-            return res.status(404).json({ msg: `No code mappings found for the selected language: ${language}` });
-        }
+        // const codeMapping = await ProblemLanguageCodeMapping.findOne({ problemLanguageMappingID: languageMapping._id });
+        // if (!codeMapping) {
+        //     return res.status(404).json({ msg: `No code mappings found for the selected language: ${language}` });
+        // }
 
-        const completeCode = `${codeMapping.preCode}\n${userCode}\n${codeMapping.postCode}`;
+        // const completeCode = `${codeMapping.preCode}\n${userCode}\n${codeMapping.postCode}`;
+
+        let completeCode = '';
+        if (languageMapping) {
+            const codeMapping = await ProblemLanguageCodeMapping.findOne({ problemLanguageMappingID: languageMapping._id });
+            if (codeMapping) {
+                completeCode = `${codeMapping.preCode}\n${userCode}\n${codeMapping.postCode}`;
+            } else {
+                completeCode = `${userCode}`;
+            }
+        } else {
+            completeCode = `${userCode}`;
+        }
         console.log(completeCode)
         const results = [];
 
