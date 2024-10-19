@@ -187,10 +187,10 @@ const handleSubmission = async (req, res) => {
                     testCase.output
                 );
 
-                otherResults.push({
+                results.push({
                     input: testCase.input,
                     expected_output: testCase.output,
-                    actual_output: atob(result.stdout),
+                    actual_output: result.stdout,
                     success: atob(result.stdout) === testCase.output,
                     status: result.status.description
                 });
@@ -198,7 +198,7 @@ const handleSubmission = async (req, res) => {
 
 
 
-            res.json({ results, otherResults });
+            res.json({ results });
         } else {
             res.json({ results });
         }
@@ -221,7 +221,7 @@ const handleRun = async (req, res) => {
                 populate: { path: 'problemLanguageCodeMapping' }
             });
         if (!problem) return res.status(404).json({ msg: 'Problem not found' });
-
+        console.log(language)
         const languageMapping = await ProblemLanguageMapping.findOne({ problemID: problemId, language });
         if (!languageMapping) {
             return res.status(404).json({ msg: `No language mapping found for ${language}` });
@@ -233,6 +233,7 @@ const handleRun = async (req, res) => {
         }
 
         const completeCode = `${codeMapping.preCode}\n${userCode}\n${codeMapping.postCode}`;
+        console.log(completeCode)
         const results = [];
 
         for (const testCase of problem.sampleTestCases) {
