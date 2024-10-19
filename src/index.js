@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
+const axios = require("axios")
 
 //Routes
 const authRoutes = require("../routes/auth")
@@ -46,6 +47,16 @@ app.use("/api/contests", contestRoute);
 app.get("/", (req, res) => {
     res.status(200).send("This is the response from the Primary Backend");
 })
+
+setInterval(() => {
+    axios.get('https://coding-platform-primary-backend.onrender.com/')
+        .then(response => {
+            console.log('Pinged backend to keep it alive.');
+        })
+        .catch(error => {
+            console.error('Error pinging backend:', error);
+        });
+}, 2 * 60 * 1000);
 
 app.listen(PORT, (req, res) => {
     console.log(`Server listening on PORT ${PORT}`)
