@@ -4,9 +4,12 @@ const ProblemLanguageMapping = require('../models/ProblemLanguageMapping');
 const ProblemLanguageCodeMapping = require('../models/ProblemLanguageCodeMapping');
 const axios = require('axios');
 const { propfind } = require('../routes/auth');
-
+const User = require("../models/User")
 // Load environment variables from .env
 require('dotenv').config();
+
+const secretKey = process.env.secretKey
+
 
 const JUDGE0_API_URL = process.env.JUDGE0_API_URL;
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
@@ -178,7 +181,22 @@ const handleSubmission = async (req, res) => {
                 });
             }
 
+            const token = req.headers.authorization.split(' ')[1];
+            if (token) {
+                try {
+                    const decoded = jwt.verify(token, secretKey); // Use your secret key
+                    const userId = decoded.id; // Assuming your token has user ID
 
+                    // Find user and update solvedProblems
+                    const user = await User.findById(userId);
+                    if (user) {
+                        user.problemsCompleted.push(problemId); // Update user's solved problems
+                        await user.save(); // Save to database
+                    }
+                } catch (error) {
+                    console.error('Invalid token:', error);
+                }
+            }
 
             res.json({ results });
         } else {
