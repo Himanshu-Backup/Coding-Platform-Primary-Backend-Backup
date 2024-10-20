@@ -5,6 +5,7 @@ const ProblemLanguageCodeMapping = require('../models/ProblemLanguageCodeMapping
 const axios = require('axios');
 const { propfind } = require('../routes/auth');
 const User = require("../models/User")
+const jwt = require('jsonwebtoken');
 // Load environment variables from .env
 require('dotenv').config();
 
@@ -181,22 +182,43 @@ const handleSubmission = async (req, res) => {
                 });
             }
 
-            const token = req.headers.authorization.split(' ')[1];
-            if (token) {
-                try {
-                    const decoded = jwt.verify(token, secretKey); // Use your secret key
-                    const userId = decoded.id; // Assuming your token has user ID
+            const authHeader = req.headers.authorization;
 
-                    // Find user and update solvedProblems
-                    const user = await User.findById(userId);
-                    if (user) {
-                        user.problemsCompleted.push(problemId); // Update user's solved problems
-                        await user.save(); // Save to database
+            if (authHeader) {
+                const token = authHeader.split(' ')[1]; // Extract token
+                console.log("Got the token");
+                console.log(token);
+
+                if (token) {
+                    try {
+                        // const decoded = jwt.verify(token, secretKey); // Verify token with secret key
+                        // const userId = decoded.id; // Assuming the token contains the user ID
+
+                        jwt.verify(token, secretKey, (err, decoded) => {
+                            if (err) {
+                                console.error(err);
+                            } else {
+                                req.user = decoded.user;
+                                // console.log(decoded);
+                                console.log(req.user);
+                            }
+                        })
+
+                        // Find user and update solvedProblems
+                        const user = await User.findById(req.user.id)
+
+                        if (user) {
+                            user.problemsCompleted.push(problemId); // Update user's solved problems
+                            await user.save(); // Save changes to the database
+                        }
+                    } catch (error) {
+                        console.error('Invalid token:', error);
                     }
-                } catch (error) {
-                    console.error('Invalid token:', error);
                 }
+            } else {
+                console.log('No authentication token found in headers.');
             }
+
 
             res.json({ results });
         } else {
