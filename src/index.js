@@ -48,8 +48,10 @@ app.get("/", (req, res) => {
     res.status(200).send("This is the response from the Primary Backend");
 })
 
+const backendURL = process.env.Backend_URL;
+
 setInterval(() => {
-    axios.get('https://coding-platform-primary-backend.onrender.com/')
+    axios.get(`${backendURL}`)
         .then(response => {
             console.log('Pinged backend to keep it alive.');
         })
