@@ -11,10 +11,6 @@ require('dotenv').config();
 
 const secretKey = process.env.secretKey
 
-
-const JUDGE0_API_URL = process.env.JUDGE0_API_URL;
-const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
-
 const LANGUAGE_IDS = {
     "C++": 54,
     "Java": 91,
@@ -24,17 +20,19 @@ const LANGUAGE_IDS = {
 
 const createSubmissionAndFetchResult = async (source_code, language_id, _stdin, expected_output) => {
     try {
+        const xkey = process.env.JUDGE0_API_KEY;
+        const xhost = process.env.JUDGE0_API_URL;
         const options = {
             method: 'POST',
-            url: 'https://judge0-ce.p.rapidapi.com/submissions',
+            url: `https://${xhost}/submissions`,
             params: {
                 base64_encoded: 'true',
                 wait: 'false',
                 fields: '*'
             },
             headers: {
-                'x-rapidapi-key': '908dd6c3a9mshcfeebef6564f291p181ca8jsnf1a23bba0dd1',
-                'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
+                'x-rapidapi-key': `${xkey}`,
+                'x-rapidapi-host': `${xhost}`,
                 'Content-Type': 'application/json'
             },
             data: {
