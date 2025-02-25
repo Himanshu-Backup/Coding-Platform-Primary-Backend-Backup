@@ -15,9 +15,9 @@ module.exports.register = async (req, res) => {
     try {
         const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${captchaValue}`;
 
-        const { data2 } = await axios.post(verifyUrl);
-        console.log(data2);
-        if (!data2.success) {
+        const { data } = await axios.post(verifyUrl);
+        console.log(data);
+        if (!data.success) {
             return res.status(400).json({ error: "CAPTCHA verification failed!" });
         }
 
@@ -27,7 +27,7 @@ module.exports.register = async (req, res) => {
         // Log the saved user document
         console.log('User saved:', resp);
 
-        const data = {
+        const data2 = {
             user: { id: user._id }
         }
         // console.log(process.env.SECRET);
@@ -48,9 +48,9 @@ module.exports.login = async (req, res) => {
     try {
         const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${captchaValue}`;
 
-        const { data2 } = await axios.post(verifyUrl);
-        console.log(data2);
-        if (!data2.success) {
+        const { data } = await axios.post(verifyUrl);
+        console.log(data);
+        if (!data.success) {
             return res.status(400).json({ error: "CAPTCHA verification failed!" });
         }
         // Find the user by email
@@ -66,10 +66,10 @@ module.exports.login = async (req, res) => {
         }
 
         // Generate JWT token
-        const data = {
+        const data2 = {
             user: { id: foundUser._id }
         };
-        const authToken = jwt.sign(data, secretKey, { expiresIn: '1h' });
+        const authToken = jwt.sign(data2, secretKey, { expiresIn: '1h' });
 
         res.status(200).json({ success: true, authToken });
     } catch (error) {
