@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const secretKey = process.env.secretKey;
 const User = require('../models/User')
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
 
