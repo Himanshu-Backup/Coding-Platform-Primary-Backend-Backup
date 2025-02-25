@@ -207,8 +207,10 @@ const handleSubmission = async (req, res) => {
                         const user = await User.findById(req.user.id)
 
                         if (user) {
-                            user.problemsCompleted.push(problemId); // Update user's solved problems
-                            await user.save(); // Save changes to the database
+                            if (!user.problemsCompleted.includes(problemId)) {
+                                user.problemsCompleted.push(problemId); // Update user's solved problems
+                                await user.save(); // Save changes to the database
+                            }
                         }
                     } catch (error) {
                         console.error('Invalid token:', error);
