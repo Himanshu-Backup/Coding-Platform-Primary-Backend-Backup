@@ -83,7 +83,7 @@ module.exports.getProfile = async (req, res) => {
     try {
         // Find the user by the ID present in the request object (set by fetchUser middleware)
         const user = await User.findById(req.user.id)
-            .populate('problemsCompleted', 'title') // Populate 'problemsCompleted' with the 'title' field from the Problem model
+            .populate('problemsCompleted', 'title _id') // Populate 'problemsCompleted' with the 'title' field from the Problem model
             .select('username email problemsCompleted'); // Select only the necessary fields from the user
 
         // If the user does not exist
