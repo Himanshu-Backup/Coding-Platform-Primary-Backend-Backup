@@ -40,7 +40,8 @@ const createSubmissionAndFetchResult = async (source_code, language_id, _stdin, 
                 source_code: btoa(source_code),
                 stdin: btoa(_stdin),
                 expected_output: btoa(expected_output),
-                timeout: 2
+                cpu_time_limit: 2,
+                cpu_extra_time: 1
             }
         };
 
@@ -148,6 +149,8 @@ const handleSubmission = async (req, res) => {
                 testCase.input,
                 testCase.output
             );
+
+            console.log(result);
 
             results.push({
                 input: testCase.input,

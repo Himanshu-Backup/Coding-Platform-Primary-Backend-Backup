@@ -10,7 +10,6 @@ const { handleSubmission, handleRun } = require("../controllers/problemSubmissio
 
 
 // Submit code for a problem
-//Submitting a problem requires user to be logged in
 router.post('/:id/submit', handleSubmission);
 
 // Handle req for code run against sample test cases associated with a problem
