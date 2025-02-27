@@ -9,6 +9,7 @@ const authRoutes = require("../routes/auth")
 const problemRoutes = require("../routes/problem")
 const submissionRoutes = require("../routes/submission")
 const contestRoute = require("../routes/contest")
+const tracksRoute = require("../routes/track")
 
 
 
@@ -43,6 +44,7 @@ app.use('/api/user', authRoutes);
 app.use('/api/problems', problemRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use("/api/contests", contestRoute);
+app.use("/api/tracks", tracksRoute);
 
 //Routes
 app.get("/", (req, res) => {

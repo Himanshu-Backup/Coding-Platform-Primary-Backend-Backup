@@ -8,6 +8,12 @@ const problemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    track: {
+        type: [Number],
+        enum: [1, 2, 3],  //dsa : 1, cp : 2, interview : 3
+        default: [1],
+        required: true
+    },
     testCases: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ProblemTestCaseMapping'
