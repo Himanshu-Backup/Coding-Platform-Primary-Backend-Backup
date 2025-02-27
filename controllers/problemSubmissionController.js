@@ -39,7 +39,8 @@ const createSubmissionAndFetchResult = async (source_code, language_id, _stdin, 
                 language_id: language_id,
                 source_code: btoa(source_code),
                 stdin: btoa(_stdin),
-                expected_output: btoa(expected_output)
+                expected_output: btoa(expected_output),
+                timeout: 2
             }
         };
 
