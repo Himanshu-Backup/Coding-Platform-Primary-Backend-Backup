@@ -8,6 +8,16 @@ const problemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    topic: {
+        type: [String],
+        default: ["General"],
+        required: true
+    },
+    difficulty: {
+        type: String,
+        default: "easy",
+        required: true
+    },
     track: {
         type: [Number],
         enum: [1, 2, 3],  //dsa : 1, cp : 2, interview : 3
