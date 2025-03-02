@@ -25,9 +25,14 @@ const migrateDatabase = async () => {
     try {
         console.log("Starting Database Migration...");
 
-        await Problem.updateMany(
-            { track: { $exists: false } },
-            { $set: { track: [1] } }
+        const result = await Problem.updateMany(
+            { $or: [{ topic: { $exists: false } }, { difficulty: { $exists: false } }] },
+            {
+                $set: {
+                    topic: ["General"],
+                    difficulty: "easy",
+                }
+            }
         );
 
         console.log("Migration Completed: Added missing 'track' fields.");
